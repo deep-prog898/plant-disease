@@ -57,27 +57,17 @@ for images, labels in train_dataset.take(1):
     print("Label shape:", labels.shape)
     print("Pixel value range:", images.numpy().min(), "to", images.numpy().max())
     print("First 10 labels:", labels.numpy()[:10])
-import matplotlib.pyplot as plt
+print("MobileNetV2 preprocessing applied!")
 
-# Take one batch from the training dataset
+# Display class names
+print("Classes:", class_names)
+
+print("Training dataset loaded successfully!")
+print("Validation dataset loaded successfully!")
+
+# Get one batch of images and labels
 for images, labels in train_dataset.take(1):
-  
-  original_image = images[0:1]
-
-# Apply augmentation
-augmented_image = data_augmentation(original_image, training=True)
-
-    # Display both images
-plt.figure(figsize=(8, 4))
-
-plt.subplot(1, 2, 1)
-plt.imshow((original_image[0] + 1) / 2)
-plt.title("Original")
-plt.axis("off")
-
-plt.subplot(1, 2, 2)
-plt.imshow((augmented_image[0] + 1) / 2)
-plt.title("Augmented")
-plt.axis("off")
-
-plt.show()
+    print("Image shape:", images.shape)
+    print("Label shape:", labels.shape)
+    print("Pixel value range:", images.numpy().min(), "to", images.numpy().max())
+    print("First 10 labels:", labels.numpy()[:10])
