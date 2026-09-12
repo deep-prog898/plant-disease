@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Plant Disease Prediction</title>
+
+  <!-- Import Google Font -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* FULL-SCREEN IMMERSIVE BACKGROUND */
+    body {
+      /* Uses a beautiful farm image for the ENTIRE page, with a dark overlay to make text readable */
+      background: linear-gradient(rgba(10, 40, 20, 0.6), rgba(10, 40, 20, 0.8)), 
+                  url('https://images.pexels.com/photos/2165688/pexels-photo-2165688.jpeg?auto=compress&cs=tinysrgb&w=1600') no-repeat center center fixed;
+      background-size: cover;
+      color: #1f2937;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Transparent Header */
+    header {
+      color: white;
+      padding: 50px 20px 30px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    header p {
+      font-size: 18px;
+      font-weight: 300;
+      opacity: 0.95;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    /* WIDER Main Layout to fill empty space */
+    .main-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      width: 95%;
+      max-width: 1400px; /* Increased width to stretch across wide screens */
+      margin: 20px auto 40px;
+      gap: 30px;
+      flex-grow: 1;
+    }
+
+    /* GLASSMORPHISM (Frosted Glass) PANELS */
+    .info-panel, .card {
+      background: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+      backdrop-filter: blur(16px); /* Blurs the background behind the card */
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* LEFT SIDE: Project Description Panel */
+    .info-panel {
+      flex: 1;
+      min-width: 380px;
+    }
+
+    .info-panel h2 {
+      color: #14532d;
+      font-size: 28px;
+      margin-bottom: 20px;
+      line-height: 1.3;
+    }
+
+    .info-panel p {
+      color: #334155;
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+
+    .feature-list { list-style: none; }
+    .feature-list li {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      font-size: 15px;
+      color: #1e293b;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .feature-icon {
+      background: #22c55e;
+      color: white;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 50%;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+    }
+
+    /* RIGHT SIDE: Interactive App */
+    .app-panel {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .card h2 {
+      color: #15803d;
+      margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed #22c55e;
+      border-radius: 20px;
+      padding: 40px 20px;
+      text-align: center;
+      background: rgba(240, 253, 244, 0.7);
+      transition: all 0.3s ease;
+    }
+
+    .upload-area:hover {
+      background: rgba(220, 252, 231, 0.9);
+      border-color: #16a34a;
+    }
+
+    .upload-icon {
+      font-size: 55px;
+      margin-bottom: 15px;
+    }
+
+    .upload-area p {
+      color: #475569;
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    input[type="file"] { display: none; }
+
+    /* Buttons */
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .upload-btn { background: #16a34a; color: white; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3); }
+    .upload-btn:hover { background: #15803d; transform: translateY(-2px); }
+
+    .camera-btn { background: white; color: #166534; border: 1px solid #bbf7d0; }
+    .camera-btn:hover { background: #f0fdf4; transform: translateY(-2px); }
+
+    /* Preview */
+    .preview-box {
+      height: 280px;
+      margin-top: 25px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+    }
+
+    .preview-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+
+    /* Analyze Button */
+    .analyze-btn {
+      width: 100%;
+      margin-top: 25px;
+      background: linear-gradient(135deg, #15803d, #16a34a);
+      color: white;
+      font-size: 18px;
+      padding: 18px;
+      justify-content: center;
+    }
+
+    .analyze-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+
+    /* Loading Spinner */
+    .loading { display: none; text-align: center; margin-top: 25px; color: #16a34a; font-weight: 600; }
+    .spinner {
+      width: 45px; height: 45px; border: 4px solid #dcfce7; border-top: 4px solid #16a34a;
+      border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Result Card */
+    .result-card { display: none; animation: slideIn 0.5s ease forwards; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .result-status {
+      text-align: center; padding: 16px; border-radius: 16px; margin-bottom: 25px;
+      font-size: 18px; font-weight: 700; display: flex; justify-content: center; gap: 10px;
+    }
+    .diseased { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .healthy { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    .result-item {
+      display: flex; justify-content: space-between; padding: 16px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 16px;
+    }
+    .result-item span:first-child { color: #475569; display: flex; align-items: center; gap: 8px; }
+    .result-item span:last-child { font-weight: 600; color: #0f172a; }
+
+    /* Confidence Bar */
+    .confidence-wrapper { margin-top: 20px; margin-bottom: 25px; }
+    .confidence-header { display: flex; justify-content: space-between; font-size: 15px; color: #475569; margin-bottom: 10px; }
+    .confidence-bar { height: 14px; background: rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; }
+    .confidence-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width 1.5s ease; }
+
+    /* Treatment Box */
+    .treatment {
+      background: rgba(59, 130, 246, 0.1); border-left: 5px solid #3b82f6;
+      padding: 20px; border-radius: 0 12px 12px 0; margin-top: 20px;
+    }
+    .treatment strong { color: #1e3a8a; display: block; margin-bottom: 10px; font-size: 16px; }
+    .treatment p { color: #1e293b; font-size: 15px; line-height: 1.6; }
+
+    /* Footer */
+    footer {
+      text-align: center; padding: 25px; color: white; font-size: 15px;
+      margin-top: auto; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px);
+    }
+    footer span { font-weight: 600; color: #4ade80; }
+
+    /* Responsive */
+    @media (max-width: 950px) {
+      .main-wrapper { flex-direction: column; }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Header -->
+
+  <header>
+    <h1>🌿 AI Plant Disease Predictor</h1>
+    <p>Upload a leaf image for instant, automated crop health diagnostics.</p>
+  </header>
+
+  <div class="main-wrapper">
+
+<!-- LEFT SIDE: Project Info -->
+<aside class="info-panel">
+  <h2>Empowering Agriculture with Artificial Intelligence</h2>
+  
+  <!-- IMAGE FIX: Using a highly reliable Pexels CDN link -->
+  <!-- If this STILL breaks, download an image, save it in your folder as 'farm.jpg', and change src to src="farm.jpg" -->
+  <img src="https://images.pexels.com/photos/1112080/pexels-photo-1112080.jpeg?auto=compress&cs=tinysrgb&w=800" 
+       alt="Smart Farming" 
+       style="width: 100%; height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 25px; border: 2px solid white;">
+
+  <p>Crop diseases threaten global food security and farmers' livelihoods. This AIML-powered application utilizes Convolutional Neural Networks (CNNs) to analyze the visual patterns of plant leaves and identify diseases instantly.</p>
+  
+  <ul class="feature-list">
+    <li>
+      <div class="feature-icon">🔍</div>
+      <div><strong>Early Detection:</strong> Identify microscopic symptoms before they spread to the entire field.</div>
+    </li>
+    <li>
+      <div class="feature-icon">🎯</div>
+      <div><strong>High Accuracy:</strong> Trained on thousands of plant images to distinguish between complex diseases.</div>
+    </li>
+    <li>
+      <div class="feature-icon">💡</div>
+      <div><strong>Smart Remedies:</strong> Generates targeted treatment plans to save crops and optimize resources.</div>
+    </li>
+  </ul>
+</aside>
+
+<!-- RIGHT SIDE: The Application -->
+<main class="app-panel">
+
+  <!-- UPLOAD CARD -->
+  <div class="card">
+    <h2>📷 Leaf Image Analysis</h2>
+
+    <div class="upload-area">
+      <div class="upload-icon">🪴</div>
+      <p>Drag & Drop your image here, or select an option below.</p>
+      <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+      
+      <div class="buttons">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📁 Upload File</button>
+        <button class="camera-btn" onclick="openCamera()">📸 Use Camera</button>
+      </div>
+    </div>
+
+    <div class="preview-box">
+      <div id="previewText" style="text-align: center; color: #64748b; font-weight: 500;">
+        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">🖼️</div>
+        Image Preview
+      </div>
+      <img id="previewImage" alt="Plant Leaf Preview">
+    </div>
+
+    <button id="analyzeBtn" class="analyze-btn" onclick="analyzePlant()" disabled>✨ Analyze Plant Health</button>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Extracting Features & Running CNN Model...</p>
+    </div>
+  </div>
+
+  <!-- RESULTS CARD -->
+  <div class="card result-card" id="resultCard">
+    <h2>📊 Diagnostic Results</h2>
+
+    <div id="conditionBox" class="result-status diseased">⚠️ Diseased Plant</div>
+
+    <div class="result-item">
+      <span>🏷️ Plant Species</span>
+      <span id="plantName">-</span>
+    </div>
+
+    <div class="result-item">
+      <span>🦠 Disease Detected</span>
+      <span id="diseaseName">-</span>
+    </div>
+
+    <div class="confidence-wrapper">
+      <div class="confidence-header">
+        <span>AI Confidence Score</span>
+        <span id="confidence" style="font-weight: 700; color: #0f172a;">-</span>
+      </div>
+      <div class="confidence-bar">
+        <div id="confidenceFill" class="confidence-fill"></div>
+      </div>
+    </div>
+
+    <div class="treatment">
+      <strong>💡 Recommended Treatment</strong>
+      <p id="treatment">-</p>
+    </div>
+  </div>
+
+</main>
+
+  </div>
+
+  <footer>
+    AIML Mini-Project | Developed by <span>Abhiraj Yadav</span>
+  </footer>
+
+  <!-- JavaScript Logic -->
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const previewImage = document.getElementById("previewImage");
+    const previewText = document.getElementById("previewText");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const loading = document.getElementById("loading");
+    const resultCard = document.getElementById("resultCard");
+
+    let selectedImage = null;
+
+    fileInput.addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image.");
+        return;
+      }
+
+      selectedImage = file;
+      previewImage.src = URL.createObjectURL(file);
+      previewImage.style.display = "block";
+      previewText.style.display = "none";
+      analyzeBtn.disabled = false;
+      
+      resultCard.style.display = "none";
+      document.getElementById("confidenceFill").style.width = "0%";
+    });
+
+    function openCamera() {
+      fileInput.setAttribute("capture", "environment");
+      fileInput.click();
+    }
+
+    async function analyzePlant() {
+      if (!selectedImage) return;
+
+      analyzeBtn.disabled = true;
+      loading.style.display = "block";
+      resultCard.style.display = "none";
+      document.getElementById("confidenceFill").style.width = "0%"; 
+
+      const formData = new FormData();
+formData.append("image", selectedImage);
+
+try {
+
+    const response = await fetch("https://plant-disease-api-p029.onrender.com/predict", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Prediction failed");
+    }
+
+    displayResult(data);
+
+} catch (error) {
+
+    console.error(error);
+
+    alert("Prediction failed: " + error.message);
+
+} finally {
+
+    loading.style.display = "none";
+    analyzeBtn.disabled = false;
+}
+      loading.style.display = "none";
+      analyzeBtn.disabled = false;
+    }
+
+    function displayResult(data) {
+      document.getElementById("plantName").textContent = data.plant_name;
+      document.getElementById("diseaseName").textContent = data.disease_name;
+      document.getElementById("confidence").textContent = data.confidence + "%";
+      document.getElementById("treatment").textContent = data.treatment;
+
+      const conditionBox = document.getElementById("conditionBox");
+      if (data.condition === "Healthy") {
+        conditionBox.innerHTML = "✨ Healthy Plant";
+        conditionBox.className = "result-status healthy";
+      } else {
+        conditionBox.innerHTML = "⚠️ Diseased Plant";
+        conditionBox.className = "result-status diseased";
+      }
+
+      resultCard.style.display = "block";
+
+      setTimeout(() => {
+        document.getElementById("confidenceFill").style.width = data.confidence + "%";
+      }, 100);
+    }
+  </script>
+
+</body>
+</html>
