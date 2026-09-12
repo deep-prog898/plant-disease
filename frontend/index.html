@@ -436,7 +436,7 @@
 formData.append("image", selectedImage);
 
 try {
-
+ 
     const response = await fetch("https://plant-disease-api-p029.onrender.com/predict", {
         method: "POST",
         body: formData

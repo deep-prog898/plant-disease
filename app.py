@@ -3,19 +3,29 @@ from flask_cors import CORS
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import io
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Load trained model
+# Load TensorFlow Lite model
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "plant_disease_mobilenetv2.keras")
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "plant_disease_mobilenetv2.tflite"
+)
 
-model = tf.keras.models.load_model(MODEL_PATH)
+interpreter = tf.lite.Interpreter(
+    model_path=MODEL_PATH
+)
 
-print("Trained model loaded successfully!")
+interpreter.allocate_tensors()
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+print("TensorFlow Lite model loaded successfully!")
+
 
 # Class names must match training order
 class_names = [
@@ -27,6 +37,7 @@ class_names = [
     "Tomato___Target_Spot",
     "Tomato___healthy"
 ]
+
 
 # Treatment information
 treatments = {
@@ -81,31 +92,58 @@ def predict():
         image = image.resize((224, 224))
 
         # Convert to numpy array
-        image_array = np.array(image, dtype=np.float32)
+        image_array = np.array(
+            image,
+            dtype=np.float32
+        )
 
         # Add batch dimension
-        image_array = np.expand_dims(image_array, axis=0)
+        image_array = np.expand_dims(
+            image_array,
+            axis=0
+        )
 
         # MobileNetV2 preprocessing
         image_array = tf.keras.applications.mobilenet_v2.preprocess_input(
             image_array
         )
 
-        # Prediction
-        predictions = model.predict(image_array, verbose=0)
+        # Prediction using TensorFlow Lite
+        interpreter.set_tensor(
+            input_details[0]["index"],
+            image_array
+        )
 
-        predicted_index = np.argmax(predictions[0])
-        confidence = float(predictions[0][predicted_index]) * 100
+        interpreter.invoke()
+
+        predictions = interpreter.get_tensor(
+            output_details[0]["index"]
+        )
+
+        predicted_index = int(
+            np.argmax(predictions[0])
+        )
+
+        confidence = (
+            float(predictions[0][predicted_index]) * 100
+        )
 
         predicted_class = class_names[predicted_index]
 
         # Determine condition
         if predicted_class == "Tomato___healthy":
+
             condition = "Healthy"
             disease_name = "No Disease Detected"
+
         else:
+
             condition = "Diseased"
-            disease_name = predicted_class.replace("Tomato___", "").replace("_", " ")
+            disease_name = (
+                predicted_class
+                .replace("Tomato___", "")
+                .replace("_", " ")
+            )
 
         # Treatment
         treatment = treatments[predicted_class]
@@ -121,14 +159,24 @@ def predict():
 
     except Exception as e:
 
+        print("Prediction error:", str(e))
+
         return jsonify({
             "error": str(e)
         }), 500
 
 
 if __name__ == "__main__":
+
+    port = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
+
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=port,
         debug=False
     )

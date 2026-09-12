@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
-COPY plant_disease_mobilenetv2.keras .
+COPY plant_disease_mobilenetv2.tflite .
 
 EXPOSE 5000
 
